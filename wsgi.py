@@ -13,13 +13,12 @@ def application(environ, start_response):
     index_file = "/index.html"
     static_directory = "/static"
     path = environ.get('PATH_INFO')
+    documents = parse_htdocs_directory(working_directory, htdocs_dir)
 
-    #TODO: refactor this method to use the parse method instead of hardcoded values
-    if environ['PATH_INFO'] == '/about':
-        file = "/about.html"
-        full_path = "".join([working_directory, htdocs_dir, file])
+    if os.path.split(environ['PATH_INFO'])[1] in documents.keys():
+        full_path = "".join([working_directory, htdocs_dir, "/", documents[os.path.split(environ['PATH_INFO'])[1]][1]])
         return_value = read_file(full_path)
-        start_response('200 OK', [('Content-Type', guess_mimetype("".join([path, file])))])
+        start_response('200 OK', [('Content-Type', guess_mimetype(full_path))])
         return [return_value]
 
     elif path.find("/favicon.ico") == 0:
@@ -33,7 +32,8 @@ def application(environ, start_response):
         full_path = "".join([working_directory, htdocs_dir, index_file])
         return_value = read_file(full_path)
         start_response('200 OK', [('Content-Type', guess_mimetype("".join([path, index_file])))])
-        print parse_htdocs_directory(working_directory, htdocs_dir)
+
+
         return [return_value]
 
 
@@ -50,10 +50,10 @@ def guess_mimetype(path):
 def parse_htdocs_directory(path, htdocs_dir):
     htdocs_files = {}
     htdocs_path = "".join([path, htdocs_dir])
-    for file in os.listdir(htdocs_path):
-        file_path = "".join([htdocs_path, "/", file])
+    for file_name in os.listdir(htdocs_path):
+        file_path = "".join([htdocs_path, "/", file_name])
         if isfile(file_path):
-            htdocs_files[os.path.splitext(file)[0]] = file_path
+            htdocs_files[os.path.splitext(file_name)[0]] = (file_path, file_name)
     return htdocs_files
 
 
